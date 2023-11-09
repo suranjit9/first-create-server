@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const port = process.env.PORT || 5000;
 const cors = require('cors')
 app.use(cors())
@@ -13,7 +14,6 @@ const user = [
 ]
 // Mongobd
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://suranjitm07:njmSkyamt08jmla0@cluster0.gzl03ny.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,6 +29,19 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const database = client.db("insertDB");
+    const userCalection = database.collection("user");
+
+    app.post('/serUser', async(req, res)=>{
+      const doc = req.body;
+      console.log(doc)
+      const result = await userCalection.insertOne(doc);
+      res.send(result);
+    })
+
+   
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -46,15 +59,15 @@ app.get('/', (req, res) => {
 app.get('/user', (req, res) => {
   res.send(user)
 })
-app.post('/user', (req, res) => {
-    console.log('post api hitting');
-    console.log(req.body);
-    const newUser = req.body;
-    newUser.id = user.length + 1;
-    user.push(newUser);
-    res.send(newUser);
+app.post('/user', async(req, res) => {
+  // console.log('post api hitting');
+  // console.log(req.body);
+  const newUser = req.body;
+  newUser.id = user.length + 1;
+  user.push(newUser);
+  res.send(newUser);
 //   res.send(req.body)
-  
+
 })
 
 app.listen(port, () => {
